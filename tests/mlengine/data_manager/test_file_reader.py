@@ -15,15 +15,16 @@ class FileReaderGetDfDetailsTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls._test_df = pd.read_csv(FileReaderGetDfDetailsTestCase.FILE)
+        cls._test_df = pd.read_csv(cls.FILE)
 
     @classmethod
     def tearDownClass(cls):
         del cls._test_df
 
     def test_get_df_details(self):
-        self.assertTrue(isinstance(file_reader.get_df_details(FileReaderGetDfDetailsTestCase._test_df), Tuple))
-        self.assertEqual(len(file_reader.get_df_details(FileReaderGetDfDetailsTestCase._test_df)), 5)
+        result = file_reader.get_df_details(self._test_df)
+        self.assertTrue(isinstance(result, Tuple))
+        self.assertEqual(len(result), 5)
 
 
 if __name__ == "__main__":
