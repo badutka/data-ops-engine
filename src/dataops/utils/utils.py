@@ -34,6 +34,13 @@ def read_yaml(filename: AnyStr) -> Dict:
     return data_loaded
 
 
+def setup_param_grid(models_params, name):
+    model_params = models_params[name]
+    param_grid = get_param_grid(model_params)
+    param_grid = make_pipeline_grid_names(name, param_grid)
+    return param_grid
+
+
 def get_param_grid(model_params):
     match model_params:
         case {'random_search': d} if d:
