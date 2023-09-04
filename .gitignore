@@ -155,3 +155,4 @@ cython_debug/
 /html/
 /htmlcov/
 testscript.py
+/src/dataops/pipeline.html
