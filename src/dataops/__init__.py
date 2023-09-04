@@ -3,29 +3,37 @@ import os
 import logging
 import coloredlogs
 
-# Global variable to store the settings
-SETTINGS = None
 
-# Local variable to store the settings file name
-SETTINGS_FILE_NAME = "settings.yaml"
+class SettingsSingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
 
 
 # Function to load the settings
 def load_settings():
     # todo: https://stackoverflow.com/questions/6198372/most-pythonic-way-to-provide-global-configuration-variables-in-config-py
-    global SETTINGS
     current_file_path = os.path.abspath(__file__)
-    file_path = os.path.join(os.path.dirname(current_file_path), SETTINGS_FILE_NAME)
+    file_path = os.path.join(os.path.dirname(current_file_path), "settings.yaml")
     with open(file_path, "r") as file:
-        SETTINGS = yaml.safe_load(file)
+        settings = yaml.safe_load(file)
+    return settings
 
 
+class Settings(metaclass=SettingsSingletonMeta):
+    __settings: dict = load_settings()
 
-# Function to get the settings
-def get_settings():
-    if SETTINGS is None:
-        load_settings()
-    return SETTINGS
+    @staticmethod
+    def get(name):
+        return Settings.__settings[name]
+
+    @staticmethod
+    def set(name, value):
+        raise NotImplementedError("Settings values for configuration is not yet permitted.")
 
 
 def setup_logger():
@@ -67,5 +75,5 @@ def setup_logger():
     return logger
 
 
-get_settings()
 setup_logger()
+settings = Settings()

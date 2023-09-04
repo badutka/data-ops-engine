@@ -11,6 +11,7 @@ from collections import Counter
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from ... import SETTINGS
+# from ... import Settings
 
 
 def create_histogram_plot(column_data):
