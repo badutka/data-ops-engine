@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "mlengine"
 version = "0.0.1"
-dependencies = ['numpy ~= 1.23.4', 'pandas ~= 1.5.1']
+dependencies = ['numpy ~= 1.23.4', 'pandas ~= 1.5.1', 'PyYAML~=6.0']
 authors = [{name="Bartosz Dutka", email="dutkabar@gmail.com"},]
 description = "data management, statistics and machine learning library"
 readme = "README.md"
