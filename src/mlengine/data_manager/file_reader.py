@@ -5,8 +5,11 @@ from pandas.io.formats.info import DataFrameInfo
 
 
 def get_df_details(df: pd.DataFrame) -> tuple[int, Iterable, Sequence[int], Mapping[str, int], str]:
-    return (DataFrameInfo(df).col_count,
-            DataFrameInfo(df).dtypes,
-            DataFrameInfo(df).non_null_counts,
-            DataFrameInfo(df).dtype_counts,
-            DataFrameInfo(df).memory_usage_string)
+    df_info = DataFrameInfo(df)
+    return (
+        df_info.col_count,
+        df_info.dtypes,
+        df_info.non_null_counts,
+        df_info.dtype_counts,
+        df_info.memory_usage_string
+    )
