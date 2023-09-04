@@ -1,0 +1,32 @@
+histogram_plot:
+  layout:
+    autosize: false
+    height: 150
+    width: 150
+    margin:
+      t: 5
+      l: 5
+      r: 5
+      b: 5
+    showlegend: false
+    bargap: 0.05
+  plot_config:
+    displayModeBar: false
+
+pie_plot:
+  layout:
+    autosize: false
+    height: 170
+    width: 150
+    margin:
+      t: 5
+      l: 5
+      r: 5
+      b: 5
+    showlegend: false
+  plot_config:
+    displayModeBar: false
+  occurrences_text: "Occurrences"
+
+feature_desc_hist_array:
+  unique_values_text: "%s Unique Values"
