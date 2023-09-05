@@ -2,16 +2,11 @@ import yaml
 import os
 import logging
 import coloredlogs
+from dataclasses import dataclass
+from pydantic import BaseModel
+import typing
 
-
-class SettingsSingletonMeta(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
+__version__ = "0.0.1"
 
 
 # Function to load the settings
@@ -24,16 +19,36 @@ def load_settings():
     return settings
 
 
-class Settings(metaclass=SettingsSingletonMeta):
-    __settings: dict = load_settings()
+# class SettingsSingletonMeta(type):
+#     _instances = {}
+#
+#     def __call__(cls, *args, **kwargs):
+#         if cls not in cls._instances:
+#             instance = super().__call__(*args, **kwargs)
+#             cls._instances[cls] = instance
+#         return cls._instances[cls]
+#
+#
+# class Settings(metaclass=SettingsSingletonMeta):
+#     __settings: dict = load_settings()
+#
+#     @classmethod
+#     def get(cls, name):
+#         return cls.__settings[name]
+#
+#     @classmethod
+#     def set(name, value):
+#         raise NotImplementedError("Settings values for configuration is not yet permitted.")
 
-    @staticmethod
-    def get(name):
-        return Settings.__settings[name]
 
-    @staticmethod
-    def set(name, value):
-        raise NotImplementedError("Settings values for configuration is not yet permitted.")
+class MulticlassSettings(BaseModel):
+    file_name: str
+    file_delimiter: typing.Union[str, None]
+    max_nunique_for_column: typing.Union[int, None]
+
+
+class Settings(BaseModel):
+    multiclass: MulticlassSettings
 
 
 def setup_logger():
@@ -72,8 +87,8 @@ def setup_logger():
             'critical': {'color': 'red', 'bold': True}
         })
 
-    return logger
-
 
 setup_logger()
-settings = Settings()
+# settings = Settings()
+settings_data = load_settings()
+settings = Settings(**settings_data)
