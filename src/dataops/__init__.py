@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 import typing
 
+# lib version
 __version__ = "0.0.1"
 
 
-# Function to load the settings
 def load_settings():
     # todo: https://stackoverflow.com/questions/6198372/most-pythonic-way-to-provide-global-configuration-variables-in-config-py
     current_file_path = os.path.abspath(__file__)
@@ -17,28 +17,6 @@ def load_settings():
     with open(file_path, "r") as file:
         settings = yaml.safe_load(file)
     return settings
-
-
-# class SettingsSingletonMeta(type):
-#     _instances = {}
-#
-#     def __call__(cls, *args, **kwargs):
-#         if cls not in cls._instances:
-#             instance = super().__call__(*args, **kwargs)
-#             cls._instances[cls] = instance
-#         return cls._instances[cls]
-#
-#
-# class Settings(metaclass=SettingsSingletonMeta):
-#     __settings: dict = load_settings()
-#
-#     @classmethod
-#     def get(cls, name):
-#         return cls.__settings[name]
-#
-#     @classmethod
-#     def set(name, value):
-#         raise NotImplementedError("Settings values for configuration is not yet permitted.")
 
 
 class MulticlassSettings(BaseModel):
@@ -68,14 +46,6 @@ def setup_logger():
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    # By default the install() function installs a handler on the root logger,
-    # this means that log messages from your code and log messages from the
-    # libraries that you use will all show up on the terminal.
-    # coloredlogs.install(level='DEBUG')
-
-    # If you don't want to see log messages from libraries, you can pass a
-    # specific logger object to the install() function. In this case only log
-    # messages originating from that logger will show up on the terminal.
     coloredlogs.install(
         level='DEBUG',
         logger=logger,
@@ -89,6 +59,5 @@ def setup_logger():
 
 
 setup_logger()
-# settings = Settings()
 settings_data = load_settings()
 settings = Settings(**settings_data)
