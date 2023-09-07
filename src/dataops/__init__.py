@@ -33,13 +33,32 @@ class MulticlassSettings(BaseModel):
     """
     file_name: str
     file_delimiter: typing.Union[str, None]
+    target: str
     max_nunique_for_column: typing.Union[int, None]
+
+    rfecv: typing.Union[int, None]
+    metric_average: str
+
+    corr_heatmap: typing.Union[str, None]
+    assoc_heatmap: typing.Union[str, None]
+
+    assoc_plot_font: float
+    assoc_plot_width: float
+    assoc_plot_height: float
+
+
+class CommonSettings(BaseModel):
+    """
+    Pydantic class to store and validate common settings
+    """
+    parameters_file_name: str
 
 
 class Settings(BaseModel):
     """
         Pydantic class to gather all lower level settings into a single object
     """
+    common: CommonSettings
     multiclass: MulticlassSettings
 
 
