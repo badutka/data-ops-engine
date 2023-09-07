@@ -1,12 +1,26 @@
-from functools import wraps
-
-import yaml
 import pandas as pd
 from pandas.io.formats.info import DataFrameInfo
-from typing import List, AnyStr, Dict, Iterable, Sequence, Mapping
 from sklearn.utils import estimator_html_repr
 from sklearn import set_config
 import seaborn as sns
+from functools import wraps
+import yaml
+from typing import List, AnyStr, Dict, Iterable, Sequence, Mapping
+import inspect
+
+from dataops import settings
+
+
+def get_lineno():
+    return inspect.currentframe().f_back.f_lineno
+
+
+def is_numeric(df):
+    return df.apply(pd.api.types.is_numeric_dtype)
+
+
+def is_below_nunique_limit(df):
+    return df.nunique() <= settings.multiclass.max_nunique_for_column
 
 
 def get_df_details(df: pd.DataFrame, verbose=True) -> pd.DataFrame:
