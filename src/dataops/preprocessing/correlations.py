@@ -8,10 +8,11 @@ from scipy.stats import chi2_contingency
 
 from dataops.utils.utils import set_sns_font
 import dataops.messages as messages
+from dataops import settings
 
 
 def get_correlation_numerical(df, method='pearson'):
-    return df.select_dtypes(include=[np.number]).corr(method=method)
+    return df.corr(method=method, numeric_only=True)
 
 
 @set_sns_font(0.7)
@@ -62,7 +63,8 @@ def get_association(df, method='chi2'):
     return association
 
 
-@set_sns_font(0.8)
+@set_sns_font(settings.multiclass.assoc_plot_font)
 def plot_association(association_df, annot=True, fmt='.2f', cmap='crest'):
+    plt.figure(figsize=(settings.multiclass.assoc_plot_width, settings.multiclass.assoc_plot_height))
     sns.heatmap(association_df.astype(float), annot=annot, fmt=fmt, cmap=cmap)
     plt.show()
