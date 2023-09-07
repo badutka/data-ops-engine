@@ -1,23 +1,29 @@
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-
 import pandas as pd
+import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-
 from typing import Dict, Tuple, AnyStr
-import numpy as np
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 
-def get_metrics_bc(models: Dict, X_test: pd.DataFrame, y_test: pd.Series) -> Tuple[pd.DataFrame, Dict[AnyStr, ConfusionMatrixDisplay]]:
-    metrics_df = pd.DataFrame(columns=["accuracy", "precision", "recall", "f1_score", "roc_auc_score"], index=list(models.keys()), dtype=float)
+def get_metrics_bc(models: Dict, X_test: pd.DataFrame, y_test: pd.Series, average: str = 'binary') -> Tuple[pd.DataFrame, Dict[AnyStr, ConfusionMatrixDisplay]]:
+    metrics = ["accuracy", "precision", "recall", "f1_score"]
+
+    if average != 'binary' and "roc_auc_score" in metrics:
+        metrics.remove("roc_auc_score")
+
+    metrics_df = pd.DataFrame(columns=metrics, index=list(models.keys()), dtype=float)
     confusion_matrices = {}
+
     for name, model in models.items():
         y_pred = model.predict(X_test)
         metrics_df.at[name, "accuracy"] = models[name].score(X_test, y_test)
-        metrics_df.at[name, "precision"] = precision_score(y_test, y_pred)
-        metrics_df.at[name, "recall"] = recall_score(y_test, y_pred)
-        metrics_df.at[name, "f1_score"] = f1_score(y_test, y_pred)
-        metrics_df.at[name, "roc_auc_score"] = roc_auc_score(y_test, y_pred)
+        metrics_df.at[name, "precision"] = precision_score(y_test, y_pred, average=average, zero_division=np.nan)
+        metrics_df.at[name, "recall"] = recall_score(y_test, y_pred, average=average)
+        metrics_df.at[name, "f1_score"] = f1_score(y_test, y_pred, average=average)
+
+        if average == 'binary' and "roc_auc_score" in metrics:
+            metrics_df.at[name, "roc_auc_score"] = roc_auc_score(y_test, y_pred, average=average)
 
         # confusion_matrices[name] = ConfusionMatrixDisplay(confusion_matrix=confusion_matrix(y_test, y_pred), display_labels=[False, True])
         # ConfusionMatrixDisplay(confusion_matrix=confusion_matrix(y_test, y_pred), display_labels=[False, True])
@@ -34,6 +40,8 @@ def plot_confusion_matrices(confusion_matrices, nrows, ncols):
         if nrows > 1 and ncols > 1:
             ax = axs[np.unravel_index(i, (nrows, ncols))]
         else:
+            if nrows == 1 and ncols == 1:
+                axs = np.array([axs])
             ax = axs[i]
         sns.heatmap(cm, annot=True, cmap='Blues', ax=ax, fmt='.2%')
         ax.set_title(name)
