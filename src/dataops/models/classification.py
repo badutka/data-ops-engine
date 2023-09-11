@@ -16,11 +16,12 @@ from sklearn.model_selection import RandomizedSearchCV
 from dataops import settings
 from dataops import Exceptions
 from dataops import messages
-from dataops.utils.utils import setup_param_grid, read_yaml, is_numeric, is_below_nunique_limit
+from dataops.data_manager import dataframe
+from dataops.utils.utils import setup_param_grid, read_yaml
 from dataops.utils.timing import timefunc
-from dataops.stats import correlations
 from dataops.feature_engineering import feature_engineering
-from dataops.metrics.generic_metrics import get_metrics_bc, plot_confusion_matrices, plot_metrics_heatmap
+from dataops.metrics.analyzers import MetricAnalyzer
+from dataops.stats.analyzers import CorrelationAnalyzer
 
 
 class MultiClfModel():
@@ -30,7 +31,7 @@ class MultiClfModel():
 
         self.max_unique_for_cat = settings.multiclass.max_nunique_for_column
         self.corr_heatmap = settings.multiclass.corr_heatmap
-        self.assoc_heatmap = settings.multiclass.assoc_heatmap
+        self.assoc_type_heatmap = settings.multiclass.assoc_heatmap
         self.metric_average = settings.multiclass.metric_average
         self.scoring = settings.multiclass.grid_search_scoring
         self.__data_file_name = settings.multiclass.file_name
@@ -39,7 +40,6 @@ class MultiClfModel():
         self.logger = logging.getLogger(self.logger_name)
         self.df = pd.read_csv(self.__data_file_name, delimiter=self.__data_file_delimiter)  # read df from memory
         self.models_params = read_yaml(self.parameters_file_name)
-        self.fit_models: dict = dict()
 
         self.X_train: Union[pd.DataFrame, None] = None
         self.X_test: Union[pd.DataFrame, None] = None
@@ -49,11 +49,15 @@ class MultiClfModel():
         self.X_test_feat: Union[pd.DataFrame, None] = None
         self.feature_eng_pipeline: Union[Pipeline, None] = None
         self.model_pipelines: dict = dict()
+        self.fit_models: dict = dict()
+
+        self.correlation_analyzer = CorrelationAnalyzer()
+        self.performance_analyzer = MetricAnalyzer()
 
     def setup_pipelines(self):
         pp_ohe = ColumnTransformer(
             transformers=[
-                ('encoder', OneHotEncoder(drop='first'), self.df.columns[~is_numeric(self.df)])
+                ('encoder', OneHotEncoder(drop='first'), self.df.columns[~dataframe.is_numeric(self.df)])
             ],
             remainder='passthrough'  # Handle the remaining columns as they are (numeric features)
         )
@@ -93,28 +97,27 @@ class MultiClfModel():
 
         return self.fit_models
 
-    def measure_model_perf(self, output='screen'):
+    def measure_model_perf(self, save_path=None):
         if self.X_train_feat is not None and self.X_test_feat is not None:
             X_test = self.X_test_feat
         else:
             X_test = self.X_test
 
-        metrics_df, confusion_matrices = get_metrics_bc(self.fit_models, X_test, self.y_test, average=self.metric_average)
-        plot_confusion_matrices(confusion_matrices, 1, 2)
-        plot_metrics_heatmap(metrics_df)
+        self.performance_analyzer.calculate_metrics(self.fit_models, X_test, self.y_test, average=self.metric_average)
+        self.performance_analyzer.plot_metrics()
 
     def show_data_stats(self):
         if self.max_unique_for_cat:
-            self.df = self.df.loc[:, lambda x: (is_numeric(x) | (~is_numeric(x) & is_below_nunique_limit(x)))]
+            self.df = self.df.loc[:, lambda x: (dataframe.is_numeric(x) | (~dataframe.is_numeric(x) & dataframe.is_below_nunique_limit(x)))]
 
         if self.corr_heatmap:
-            df_corr = correlations.get_correlation_numerical(df=self.df, method=self.corr_heatmap)
-            correlations.plot_correlation_numerical(df_corr=df_corr)
+            self.correlation_analyzer.calc_correlation_numerical(df=self.df, method=self.corr_heatmap)
+            self.correlation_analyzer.plot_correlations()
 
-        if self.assoc_heatmap:
+        if self.assoc_type_heatmap:
             df_assoc = feature_engineering.encode_data(df=self.df, encoder='ohe', enc_columns=self.df.select_dtypes(include='object').columns.tolist())  # exclude=[np.number]
-            assoc_cat = correlations.get_association(df_assoc, method=self.assoc_heatmap)
-            correlations.plot_association(association_df=assoc_cat[self.assoc_heatmap])
+            self.correlation_analyzer.get_association(df_assoc, method=self.assoc_type_heatmap)
+            self.correlation_analyzer.plot_associations(assoc_type=self.assoc_type_heatmap)
 
     @timefunc(logger=logging.getLogger(settings.common.logger_name))
     def __fit_model_pipeline(self, X_train, y_train, name, model_pipeline):
