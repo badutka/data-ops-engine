@@ -1,5 +1,3 @@
-import pandas as pd
-from pandas.io.formats.info import DataFrameInfo
 from sklearn.utils import estimator_html_repr
 from sklearn import set_config
 import seaborn as sns
@@ -8,38 +6,9 @@ import yaml
 from typing import List, AnyStr, Dict, Iterable, Sequence, Mapping
 import inspect
 
-from dataops import settings
-
 
 def get_lineno():
     return inspect.currentframe().f_back.f_lineno
-
-
-def is_numeric(df):
-    return df.apply(pd.api.types.is_numeric_dtype)
-
-
-def is_below_nunique_limit(df):
-    return df.nunique() <= settings.multiclass.max_nunique_for_column
-
-
-def get_df_details(df: pd.DataFrame, verbose=True) -> pd.DataFrame:
-    df_info = pd.DataFrame({"Dtype": DataFrameInfo(df).dtypes,
-                            "Non-Null": DataFrameInfo(df).non_null_counts,
-                            "Unique": df.nunique()}).reset_index(names="Column")
-
-    if verbose:
-        print(f"DataFrame Information:\n{44 * '-'}\n{df_info}")
-
-    return df_info
-
-
-def drop_columns(df: pd.DataFrame, columns: List, keep=False) -> pd.DataFrame:
-    if keep:
-        df = df[columns]
-    else:
-        df = df.drop(columns, axis=1)
-    return df
 
 
 def read_yaml(filename: AnyStr) -> Dict:
@@ -83,6 +52,20 @@ def set_sns_font(font_size):
         @wraps(func)
         def wrapper(*args, **kwargs):
             sns.set(font_scale=font_size)
+            rv = func(*args, **kwargs)
+            sns.set(font_scale=1)
+            return rv
+
+        return wrapper
+
+    return decorator
+
+
+def set_plot_size(plot_size):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            sns.set(font_scale=plot_size)
             rv = func(*args, **kwargs)
             sns.set(font_scale=1)
             return rv
