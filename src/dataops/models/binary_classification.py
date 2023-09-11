@@ -12,10 +12,10 @@ from sklearn.pipeline import Pipeline
 
 from dataops.utils.timing import time, strftime
 from dataops.custom_types.custom_types import ParamsDict, ColumnTransformer
-from dataops.stats.correlations import get_correlation_numerical, plot_correlation_numerical, get_association, plot_association
+# from dataops.stats.analyzers import get_correlation_numerical, plot_correlation_numerical, get_association, plot_association
 from dataops.feature_engineering import feature_engineering
-from dataops.metrics.generic_metrics import get_metrics_bc, plot_confusion_matrices, plot_metrics_heatmap
-from dataops.utils.utils import setup_param_grid, pipeline_to_html, read_yaml, drop_columns, get_df_details
+#from dataops.metrics.generic_metrics import get_metrics_bc, plot_confusion_matrices, plot_metrics_heatmap
+from dataops.utils.utils import setup_param_grid, pipeline_to_html, read_yaml#, drop_columns, get_df_details
 from dataops.Exceptions import ModelInputsNotProvidedWarning
 
 
