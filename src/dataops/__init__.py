@@ -27,6 +27,14 @@ def load_settings():
     return settings
 
 
+class CommonSettings(BaseModel):
+    """
+    Pydantic class to store and validate common settings
+    """
+    logger_name: str
+    parameters_file_name: str
+
+
 class MulticlassSettings(BaseModel):
     """
     Pydantic class to store and validate settings for multi-classification models
@@ -37,7 +45,10 @@ class MulticlassSettings(BaseModel):
     max_nunique_for_column: typing.Union[int, None]
 
     rfecv: typing.Union[int, None]
+    grid_search_scoring: typing.Union[str, None]
     metric_average: str
+    test_size: float
+    random_state: int
 
     corr_heatmap: typing.Union[str, None]
     assoc_heatmap: typing.Union[str, None]
@@ -45,13 +56,6 @@ class MulticlassSettings(BaseModel):
     assoc_plot_font: float
     assoc_plot_width: float
     assoc_plot_height: float
-
-
-class CommonSettings(BaseModel):
-    """
-    Pydantic class to store and validate common settings
-    """
-    parameters_file_name: str
 
 
 class Settings(BaseModel):
