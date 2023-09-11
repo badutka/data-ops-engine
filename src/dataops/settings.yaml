@@ -1,21 +1,27 @@
+common:
+  logger_name: dataops-logger # str
+  parameters_file_name: parameters.yaml # str
+
+
 multiclass:
   file_name: C:\Users\tooba\Downloads\student+performance\student-por.csv
-  file_delimiter: ;
-  target: G3
-  max_nunique_for_column: null
+  file_delimiter: ; # str | null
+  target: G3 # str
+  max_nunique_for_column: null # int | null
 
-  rfecv: 5
+  rfecv: 5 # int
+  grid_search_scoring: accuracy # accuracy | null
   metric_average: weighted # binary | micro | macro | weighted | samples
+  test_size: 0.2 # float
+  random_state: 42 # int
 
   corr_heatmap: null # pearson | null
   assoc_heatmap: chi2 # chi2 | cramers-v | null
 
-  assoc_plot_font: 0.7
-  assoc_plot_width: 15
-  assoc_plot_height: 8
+  assoc_plot_font: 0.7 # float
+  assoc_plot_width: 15 # float | int
+  assoc_plot_height: 8 # float | int
 
-common:
-  parameters_file_name: parameters.yaml
 
 histogram_plot:
   layout:
