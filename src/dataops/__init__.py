@@ -33,6 +33,8 @@ class CommonSettings(BaseModel):
     """
     logger_name: str
     parameters_file_name: str
+    histogram_plot: dict
+    pie_plot: dict
 
 
 class MulticlassSettings(BaseModel):

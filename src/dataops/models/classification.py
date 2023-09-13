@@ -3,6 +3,7 @@ import logging
 from typing import Union
 
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.impute import SimpleImputer
 from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.feature_selection import RFE
@@ -22,6 +23,8 @@ from dataops.utils.timing import timefunc
 from dataops.feature_engineering import feature_engineering
 from dataops.metrics.analyzers import MetricAnalyzer
 from dataops.stats.analyzers import CorrelationAnalyzer
+from dataops.graphs.histogram_plots.feature_histograms import feature_desc_hist_array
+import matplotlib.pyplot as plt
 
 
 class MultiClfModel():
@@ -55,6 +58,10 @@ class MultiClfModel():
         self.performance_analyzer = MetricAnalyzer()
 
     def setup_pipelines(self):
+        self.target_imp_pipeline = Pipeline([
+            ('imputer', SimpleImputer(strategy='mean')),
+        ])
+
         pp_ohe = ColumnTransformer(
             transformers=[
                 ('encoder', OneHotEncoder(drop='first'), self.df.columns[~dataframe.is_numeric(self.df)])
@@ -76,12 +83,18 @@ class MultiClfModel():
             self.model_pipelines[name] = Pipeline(steps=[(name, clf)])
 
     def get_train_test_X_y(self, target, test_size=settings.multiclass.test_size, random_state=settings.multiclass.random_state):
+        plots = feature_desc_hist_array(self.df)
         self.X_train, self.X_test, self.y_train, self.y_test = feature_engineering.get_train_test_X_y(df=self.df, target=target, test_size=test_size, random_state=random_state)  # split data
 
     def run_preprocessing_pipeline(self):
         pass
 
-    def run_feature_eng_pipeline(self):
+    def run_feature_eng_pipeline(self, impute_target=False):
+        if impute_target:
+            y_imputer = SimpleImputer(strategy='most_frequent')
+            self.y_train = y_imputer.fit_transform(self.y_train.values.reshape(-1, 1)).ravel()
+            self.y_test = y_imputer.transform(self.y_test.values.reshape(-1, 1)).ravel()
+
         self.feature_eng_pipeline.fit(self.X_train, self.y_train)
         self.X_train_feat = self.feature_eng_pipeline.transform(self.X_train)
         self.X_test_feat = self.feature_eng_pipeline.transform(self.X_test)

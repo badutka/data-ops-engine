@@ -1,103 +1,84 @@
-# import matplotlib.pyplot as plt
-import plotly.express as px
-# import plotly.graph_objects as go
-from plotly.figure_factory import create_distplot
-from plotly.offline import plot as po_plot
-# , download_plotlyjs
-import pandas as pd
-from pandas.api.types import is_string_dtype, is_numeric_dtype
 from collections import Counter
+import pandas as pd
 
+import plotly.express as px
+from plotly.offline import plot as po_plot
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from ... import SETTINGS
-# from ... import Settings
+
+from dataops import settings
+from dataops.data_manager import dataframe
 
 
-def create_histogram_plot(column_data):
+def create_histogram_plot(column_data, output='fig'):
     fig = make_subplots(rows=1, cols=1)
     fig.add_trace(go.Histogram(x=column_data), row=1, col=1)
-    fig.update_layout(**SETTINGS['histogram_plot']['layout'])
-    return po_plot(fig, config=dict(SETTINGS['histogram_plot']['plot_config']), output_type='div')
+    fig.update_traces(name=column_data.name)
+    if output == 'fig':
+        return fig
+    return po_plot(fig, config=dict(settings.common.histogram_plot['plot_config']), output_type='div')
 
 
-def create_pie_plot(column_data):
-    data = Counter(column_data)
-    count_df = pd.DataFrame.from_dict(data, orient='index', columns=['Occurrences'])
+def create_pie_plot(column_data, others=5, output='fig'):
+    text = settings.common.pie_plot['occurrences_text']
+    count_df = pd.DataFrame.from_dict(Counter(column_data), orient='index', columns=[text])
 
-    if len(count_df) > 5:
-        sorted_df = count_df.sort_values(by=SETTINGS['pie_plot']['occurrences_text'], ascending=False)
-        top_5 = sorted_df.iloc[:5]
-        others_sum = sorted_df.iloc[5:].sum()
-        others = pd.DataFrame({SETTINGS['pie_plot']['occurrences_text']: [others_sum]}, index=['Others'])
-        pie_df = pd.concat([top_5, others], ignore_index=False)
+    if len(count_df) > others:
+        pie_df = dataframe.group_below_top_n(count_df, others, text)
     else:
         pie_df = count_df
 
-    fig = px.pie(pie_df, values=SETTINGS['pie_plot']['occurrences_text'], names=list(pie_df.index), hover_data=[SETTINGS['pie_plot']['occurrences_text']],
-                 labels={SETTINGS['pie_plot']['occurrences_text']: SETTINGS['pie_plot']['occurrences_text']})
-    fig.update_layout(**SETTINGS['pie_plot']['layout'])
+    fig = px.pie(pie_df, values=text, names=list(pie_df.index), hover_data=[text],
+                 labels={text: text})
+
     fig.update_traces(textinfo='percent+label')
-    return po_plot(fig, config=dict(SETTINGS['pie_plot']['plot_config']), output_type='div')
+
+    if output == 'fig':
+        return fig
+
+    return po_plot(fig, config=dict(settings.common.pie_plot['plot_config']), output_type='div')
 
 
-def feature_desc_hist_array(df):
-    hists_array = []
+def feature_desc_hist_array(df, opt_cat='pie'):
+    plots_array = []
+    titles_array = []
 
     for column in df.columns:
-        if not is_numeric_dtype(df[column]) and df[column].nunique() == df[column].size:
-            plot = SETTINGS['feature_desc_hist_array']['unique_values_text'] % df[column].size
-        elif is_numeric_dtype(df[column]):
+        if not dataframe.is_numeric(df[column]) and df[column].nunique() == df[column].size:
             plot = create_histogram_plot(df[column])
+            titles_array.append(f'{df[column].size} unique values.')
+        elif dataframe.is_numeric(df[column]):
+            plot = create_histogram_plot(df[column])
+            titles_array.append(f'Histogram of {column}.')
         else:
-            plot = create_pie_plot(df[column])
+            if opt_cat == 'pie':
+                plot = create_pie_plot(df[column])
+            else:
+                plot = create_histogram_plot(df[column])
+            titles_array.append(f'Pie chart of {column}.')
 
-        hists_array.append(plot)
+        plots_array.append(plot)
 
-    return hists_array
+    # Determine the number of rows and columns in the grid
+    num_rows = 5
+    num_cols = len(plots_array) // num_rows + (len(plots_array) % num_rows > 0)
 
-# def feature_desc_hist_array(df):
-#     hists_array = []
-#     for column in df.columns:
-#         if not is_numeric_dtype(df[column]) and df[column].nunique() == df[column].size:
-#             plot = f'{df[column].size} Unique Values'
-#         elif is_numeric_dtype(df[column]):
-#             fig = create_distplot([df[column]], [column], show_rug=False)
-#             fig.update_layout(autosize=False, height=150, width=150, margin={'t': 5, 'l': 5, 'r': 5, 'b': 5},
-#                               showlegend=False, bargap=0.05)
-#             plot = po(fig, config=dict({"displayModeBar": False}), output_type='div')
-#         else:
-#             data = Counter(df[column])
-#             count_df = pd.DataFrame.from_dict(data, orient='index', columns=['Occurrences'])
-#             if df[column].nunique() > 5:
-#                 # Option 1
-#                 sorted_df = count_df.sort_values(by='Occurrences', ascending=False)
-#                 pie_df = sorted_df.iloc[:5]
-#                 pie_df = pd.concat(
-#                     [pie_df, pd.DataFrame({"Occurrences": sorted_df["Occurrences"].iloc[5:].sum()}, index=['Others'])],
-#                     ignore_index=False)
-#
-#                 # Option 2 -> deprecated
-#                 # pie_df = pie_df.append(pd.DataFrame({"vals": sorted_df["vals"].iloc[5:].sum()}, index=['Others']),
-#                 #                        ignore_index=False)
-#
-#                 # Option 3 -> concat 'others' df rather than new pd.DataFrame (fewer options so need to fix index, columns)
-#                 # top_n = partial_df.sort_values('vals', ascending=False)[:5]
-#                 # others = partial_df.sort_values('vals', ascending=False)[5:].sum().to_frame()
-#                 # others.index = ['Others']
-#                 # others.columns = ['vals']
-#                 # pie_df = pd.concat([top_n, others], axis=0)
-#                 # print(pie_df)
-#             else:
-#                 pie_df = count_df
-#
-#             fig = px.pie(pie_df, values='Occurrences', names=list(pie_df.index),
-#                          # title='Groups',
-#                          hover_data=['Occurrences'], labels={'Occurrences': 'Occurrences'})
-#             fig.update_layout(autosize=False, height=170, width=150, margin={'t': 5, 'l': 5, 'r': 5, 'b': 5},
-#                               showlegend=False)  # showlegend=True, legend=dict(orientation="h", yanchor="top", y=1.1, xanchor="left", x=0)
-#             fig.update_traces(textinfo='percent+label')
-#             plot = po(fig, config=dict({"displayModeBar": False}), output_type='div')
-#
-#         hists_array.append(plot)
-#     return hists_array
+    subplot_types = ['pie' if plot.data and isinstance(plot.data[0], go.Pie) else 'xy' for plot in plots_array]
+
+    combined_fig = make_subplots(
+        rows=num_rows,
+        cols=num_cols,
+        specs=[[{"type": subplot_types[i * num_cols + j]} if i * num_cols + j < len(subplot_types) else {"type": "xy"} for j in range(num_cols)] for i in range(num_rows)],
+        subplot_titles=titles_array
+    )
+
+    # Add plots to subplots
+    for i, plot in enumerate(plots_array):
+        col_num = (i % num_cols) + 1
+        row_num = (i // num_cols) + 1
+        for trace in plot.data:
+            combined_fig.add_trace(trace, row=row_num, col=col_num)
+
+    # Update layout and show the combined figure
+    combined_fig.update_layout(**settings.common.histogram_plot['layout'])
+    combined_fig.show()

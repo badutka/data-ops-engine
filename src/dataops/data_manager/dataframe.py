@@ -1,9 +1,18 @@
-from typing import Iterable, Sequence, Mapping, List
+from typing import Iterable, Sequence, Mapping, List, Union
 
 import pandas as pd
 from pandas.io.formats.info import DataFrameInfo
 
 from dataops import settings
+
+
+def group_below_top_n(count_df, n, text):
+    sorted_df = count_df.sort_values(by=text, ascending=False)
+    top_n = sorted_df.iloc[:n]
+    others_sum = sorted_df.iloc[n:].sum()
+    others = pd.DataFrame({text: [others_sum]}, index=['Others'])
+    pie_df = pd.concat([top_n, others], ignore_index=False)
+    return pie_df
 
 
 def get_df_details(df: pd.DataFrame) -> tuple[int, Iterable, Sequence[int], Mapping[str, int], str]:
@@ -36,8 +45,11 @@ def drop_columns(df: pd.DataFrame, columns: List, keep=False) -> pd.DataFrame:
     return df
 
 
-def is_numeric(df):
-    return df.apply(pd.api.types.is_numeric_dtype)
+def is_numeric(df: Union[pd.DataFrame, pd.Series]):
+    if isinstance(df, pd.DataFrame):
+        return df.apply(pd.api.types.is_numeric_dtype)
+    elif isinstance(df, pd.Series):
+        return pd.api.types.is_numeric_dtype(df)
 
 
 def is_below_nunique_limit(df):

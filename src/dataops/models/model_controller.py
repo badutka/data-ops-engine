@@ -12,7 +12,7 @@ def run_multi_clfn():
 
     multi_clfn_model = MultiClfModel()  # create multi-classification model instance
 
-    multi_clfn_model.show_data_stats()  # show stats info for dataframe
+    # multi_clfn_model.show_data_stats()  # show stats info for dataframe
 
     multi_clfn_model.setup_pipelines()  # setup preprocessing and models pipelines
 

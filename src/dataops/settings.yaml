@@ -1,6 +1,34 @@
 common:
   logger_name: dataops-logger # str
   parameters_file_name: parameters.yaml # str
+  histogram_plot:
+    layout:
+#      autosize: false
+#      height: 150
+#      width: 150
+      margin:
+        t: 5
+        l: 5
+        r: 5
+        b: 5
+      showlegend: true
+      bargap: 0.05
+    plot_config:
+      displayModeBar: false
+  pie_plot:
+    layout:
+      autosize: false
+      height: 170
+      width: 150
+      margin:
+        t: 5
+        l: 5
+        r: 5
+        b: 5
+      showlegend: false
+    plot_config:
+      displayModeBar: false
+    occurrences_text: "Occurrences"
 
 
 multiclass:
@@ -21,37 +49,3 @@ multiclass:
   assoc_plot_font: 0.7 # float
   assoc_plot_width: 15 # float | int
   assoc_plot_height: 8 # float | int
-
-
-histogram_plot:
-  layout:
-    autosize: false
-    height: 150
-    width: 150
-    margin:
-      t: 5
-      l: 5
-      r: 5
-      b: 5
-    showlegend: false
-    bargap: 0.05
-  plot_config:
-    displayModeBar: false
-
-pie_plot:
-  layout:
-    autosize: false
-    height: 170
-    width: 150
-    margin:
-      t: 5
-      l: 5
-      r: 5
-      b: 5
-    showlegend: false
-  plot_config:
-    displayModeBar: false
-  occurrences_text: "Occurrences"
-
-feature_desc_hist_array:
-  unique_values_text: "%s Unique Values"
