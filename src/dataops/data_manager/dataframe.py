@@ -37,6 +37,12 @@ def get_df_info(df: pd.DataFrame, verbose=True) -> pd.DataFrame:
     return df_info
 
 
+def get_features_index(columns, target):
+    column_name_to_integer = {col: i for i, col in enumerate(columns) if col != target}
+    # Get the remaining columns as integers in the original order
+    return [column_name_to_integer[col] for col in columns if col != target]
+
+
 def drop_columns(df: pd.DataFrame, columns: List, keep=False) -> pd.DataFrame:
     if keep:
         df = df[columns]
@@ -50,6 +56,23 @@ def is_numeric(df: Union[pd.DataFrame, pd.Series]):
         return df.apply(pd.api.types.is_numeric_dtype)
     elif isinstance(df, pd.Series):
         return pd.api.types.is_numeric_dtype(df)
+
+
+def get_num_cols(df):
+    return df.columns[is_numeric(df)]
+
+
+def get_cat_cols(df):
+    return df.columns[~is_numeric(df)]
+
+
+def get_num_and_cat_feats(df, target):
+    df = df.drop(target, axis=1)
+    return get_num_cols(df), get_cat_cols(df)
+
+
+def get_cat_columns(df):
+    return df.select_dtypes(include='object').columns.tolist()  # exclude=[np.number]
 
 
 def is_below_nunique_limit(df):
