@@ -16,7 +16,7 @@ def run_multi_clfn():
 
     multi_clfn_model.setup_pipelines()  # setup preprocessing and models pipelines
 
-    multi_clfn_model.get_train_test_X_y(settings.multiclass.target)  # split data
+    multi_clfn_model.get_train_test_X_y()  # split data
 
     multi_clfn_model.run_feature_eng_pipeline()  # fit preprocessing pipeline on TRAINING data
 
