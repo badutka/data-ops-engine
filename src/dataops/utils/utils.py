@@ -1,37 +1,28 @@
-from functools import wraps
-
-import yaml
-import pandas as pd
-from pandas.io.formats.info import DataFrameInfo
-from typing import List, AnyStr, Dict, Iterable, Sequence, Mapping
 from sklearn.utils import estimator_html_repr
 from sklearn import set_config
 import seaborn as sns
+from functools import wraps
+import yaml
+from typing import List, AnyStr, Dict, Iterable, Sequence, Mapping
+import inspect
+import matplotlib.pyplot as plt
 
 
-def get_df_details(df: pd.DataFrame, verbose=True) -> pd.DataFrame:
-    df_info = pd.DataFrame({"Dtype": DataFrameInfo(df).dtypes,
-                            "Non-Null": DataFrameInfo(df).non_null_counts,
-                            "Unique": df.nunique()}).reset_index(names="Column")
-
-    if verbose:
-        print(f"DataFrame Information:\n{44 * '-'}\n{df_info}")
-
-    return df_info
-
-
-def drop_columns(df: pd.DataFrame, columns: List, keep=False) -> pd.DataFrame:
-    if keep:
-        df = df[columns]
-    else:
-        df = df.drop(columns, axis=1)
-    return df
+def get_lineno():
+    return inspect.currentframe().f_back.f_lineno
 
 
 def read_yaml(filename: AnyStr) -> Dict:
     with open(filename, 'r') as f:
         data_loaded = yaml.safe_load(f)
     return data_loaded
+
+
+def setup_param_grid(models_params, name):
+    model_params = models_params[name]
+    param_grid = get_param_grid(model_params)
+    param_grid = make_pipeline_grid_names(name, param_grid)
+    return param_grid
 
 
 def get_param_grid(model_params):
@@ -64,6 +55,20 @@ def set_sns_font(font_size):
             sns.set(font_scale=font_size)
             rv = func(*args, **kwargs)
             sns.set(font_scale=1)
+            return rv
+
+        return wrapper
+
+    return decorator
+
+
+def set_plot_size(plot_size):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # sns.set(rc={'figure.figsize': plot_size})
+            plt.figure(figsize=plot_size)
+            rv = func(*args, **kwargs)
             return rv
 
         return wrapper

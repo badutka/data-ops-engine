@@ -1,6 +1,7 @@
 import time
 import statistics
 from functools import wraps
+import inspect
 
 
 def measure_execution_time(n):
@@ -27,14 +28,18 @@ def measure_execution_time(n):
     return decorator
 
 
-def timefunc(cls=None):
+def timefunc(cls=None, logger=None):
     def timefunc_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             start_time = time.perf_counter()
             return_value = func(*args, **kwargs)
-            print(f"Elapsed: {strftime(time.perf_counter() - start_time)} "
-                  f"(function/method: {func.__module__}.{cls + '.' if cls is not None else ''}{func.__name__})")
+            message = f"Elapsed: {strftime(time.perf_counter() - start_time)} " \
+                      f"(function/method: {func.__module__}.{cls + '.' if cls is not None else ''}{func.__name__})"
+            if logger:
+                logger.debug(message)
+            else:
+                print(message)
 
             return return_value
 

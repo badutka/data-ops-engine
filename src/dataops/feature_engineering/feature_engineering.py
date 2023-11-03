@@ -10,6 +10,7 @@ import scipy
 import numpy as np
 
 import dataops.messages as messages
+from dataops.utils.timing import timefunc
 
 
 # def remove_single_instance_targets(df, count):
@@ -98,5 +99,5 @@ def encode_categorical_data(X_train, X_test, columns, y_train, y_test):
 def get_train_test_X_y(df, target, *args, **kwargs):
     y = df[target]
     X = df.drop(target, axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, *args, **kwargs)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=None, *args, **kwargs)
     return X_train, X_test, y_train, y_test

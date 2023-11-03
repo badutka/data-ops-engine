@@ -2,43 +2,90 @@ import yaml
 import os
 import logging
 import coloredlogs
+from dataclasses import dataclass
+from pydantic import BaseModel
+import typing
+
+# lib version
+__version__ = "0.0.1"
 
 
-class SettingsSingletonMeta(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
-
-
-# Function to load the settings
 def load_settings():
-    # todo: https://stackoverflow.com/questions/6198372/most-pythonic-way-to-provide-global-configuration-variables-in-config-py
+    """
+    Read root:settings.yaml file into a dictionary
+    https://stackoverflow.com/questions/6198372/most-pythonic-way-to-provide-global-configuration-variables-in-config-py
+
+    Returns:
+        dict: settings loaded from yaml file
+    """
     current_file_path = os.path.abspath(__file__)
     file_path = os.path.join(os.path.dirname(current_file_path), "settings.yaml")
+
     with open(file_path, "r") as file:
         settings = yaml.safe_load(file)
+
     return settings
 
 
-class Settings(metaclass=SettingsSingletonMeta):
-    __settings: dict = load_settings()
-
-    @staticmethod
-    def get(name):
-        return Settings.__settings[name]
-
-    @staticmethod
-    def set(name, value):
-        raise NotImplementedError("Settings values for configuration is not yet permitted.")
+class CommonSettings(BaseModel):
+    """
+    Pydantic class to store and validate common settings
+    """
+    logger_name: str
+    parameters_file_name: str
+    histogram_plot: dict
+    pie_plot: dict
 
 
-def setup_logger():
+class MulticlassSettings(BaseModel):
+    """
+    Pydantic class to store and validate settings for multi-classification models
+    """
+    file_name: str
+    file_delimiter: typing.Union[str, None]
+    target: str
+    max_nunique_for_column: typing.Union[int, None]
+
+    rfecv: typing.Union[int, None]
+    grid_search_scoring: typing.Union[str, None]
+    metric_average: str
+    test_size: float
+    random_state: int
+
+    corr_heatmap: typing.Union[str, None]
+    assoc_heatmap: typing.Union[str, None]
+
+    assoc_plot_font: float
+    assoc_plot_width: float
+    assoc_plot_height: float
+
+
+class Settings(BaseModel):
+    """
+        Pydantic class to gather all lower level settings into a single object
+    """
+    common: CommonSettings
+    multiclass: MulticlassSettings
+
+
+settings_data = load_settings()
+settings = Settings(**settings_data)
+
+
+def setup_logger(logger_name="dataops-logger", file_name="logs.log", loger_level='DEBUG'):
+    """
+    Create a logger object with two handlers - console and file.
+
+    Args:
+        logger_name (str): name of the logger object used to retrieve throughout the library (only one instance per name is created)
+        file_name (str): name of the file messages are logged into
+        loger_level (str): level at which logger starts to acknowledge messages
+
+    Returns (None): None
+
+    """
     formatter = logging.Formatter("%(message)s")
-    logger = logging.getLogger("dataops-logger")
+    logger = logging.getLogger(logger_name)
 
     logger.setLevel(logging.DEBUG)
 
@@ -47,22 +94,14 @@ def setup_logger():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler("logs.log")
+    fh = logging.FileHandler(file_name)
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    # By default the install() function installs a handler on the root logger,
-    # this means that log messages from your code and log messages from the
-    # libraries that you use will all show up on the terminal.
-    # coloredlogs.install(level='DEBUG')
-
-    # If you don't want to see log messages from libraries, you can pass a
-    # specific logger object to the install() function. In this case only log
-    # messages originating from that logger will show up on the terminal.
     coloredlogs.install(
-        level='DEBUG',
+        level=loger_level,
         logger=logger,
         level_styles={
             'debug': {'color': 'blue'},
@@ -72,8 +111,5 @@ def setup_logger():
             'critical': {'color': 'red', 'bold': True}
         })
 
-    return logger
-
 
 setup_logger()
-settings = Settings()
