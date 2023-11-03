@@ -43,8 +43,8 @@ multiclass:
   test_size: 0.2 # float
   random_state: 42 # int
 
-  corr_heatmap: null # pearson | null
-  assoc_heatmap: chi2 # chi2 | cramers-v | null
+  corr_heatmap: pearson # pearson | null
+  assoc_heatmap: cramers-v # chi2 | cramers-v | null
 
   assoc_plot_font: 0.7 # float
   assoc_plot_width: 15 # float | int
