@@ -1,10 +1,12 @@
 import numpy as np
+import pandas as pd
+from typing import Dict, Union, AnyStr
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 from dataops import settings
-from dataops.utils.utils import set_sns_font
+from dataops.utils.utils import set_sns_font, set_plot_size
 
 
 class MetricPlotter():
@@ -27,6 +29,7 @@ class MetricPlotter():
         plt.tight_layout()
         plt.show()
 
+    @set_plot_size(plot_size=(10, 10))
     def plot_metrics_heatmap(self, metrics_df):
         sns.heatmap(metrics_df, annot=True, fmt='.2%', cmap='crest')
         plt.title('Metrics for every model')
@@ -34,6 +37,19 @@ class MetricPlotter():
 
 
 class CorrelationsPlotter():
+    def plot_point_biserial(self, correlation_coefficients: Dict[str, float], plot_type='heatmap'):
+        plt.figure(figsize=(10, 6))
+
+        if plot_type == 'heatmap':
+            sns.heatmap(pd.DataFrame.from_dict(correlation_coefficients, orient='index', columns=['Correlation Coefficient']), annot=True, fmt='.2%', cmap='crest')
+        if plot_type == 'bar':
+            sns.barplot(x=list(correlation_coefficients.values()), y=list(correlation_coefficients.keys()), orient='h')
+
+        plt.xlabel("Point-Biserial Correlation Coefficient")
+        plt.ylabel("Binary Categorical Features")
+        plt.title("Correlations between Features and Target")
+        plt.show()
+
     @set_sns_font(0.7)
     def plot_correlation_numerical(self, df_corr, method='pearson', annot=True, mask='triu-ones', fmt='.0%', cmap='crest'):
         if mask == 'triu-ones':
