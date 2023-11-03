@@ -5,6 +5,7 @@ from functools import wraps
 import yaml
 from typing import List, AnyStr, Dict, Iterable, Sequence, Mapping
 import inspect
+import matplotlib.pyplot as plt
 
 
 def get_lineno():
@@ -65,9 +66,9 @@ def set_plot_size(plot_size):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            sns.set(font_scale=plot_size)
+            # sns.set(rc={'figure.figsize': plot_size})
+            plt.figure(figsize=plot_size)
             rv = func(*args, **kwargs)
-            sns.set(font_scale=1)
             return rv
 
         return wrapper
